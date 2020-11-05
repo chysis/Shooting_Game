@@ -12,7 +12,7 @@
 #define title_cursor 40
 
 int area = 0;   // 모드 스위치 (0: title, 1: Game Field, 2: Ranking, 3: How to Play) #TODO
-int title_default_cur = 25;   // 타이틀 화면 커서 초기 위치
+int title_default_cur = 25;   // 타이틀 화면 커서 초기 위치.
 
 							  // 콘솔 색상 모음 (0~15)
 enum colorset {
