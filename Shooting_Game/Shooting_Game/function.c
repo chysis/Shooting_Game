@@ -11,6 +11,8 @@
 
 #define title_cursor 40                // 메인 화면 커서의 x좌표 값
 
+/* 이곳에서 모든 함수를 확인하세요 */
+
 // 콘솔 관리 함수
 
 void Gotoxy(short x, short y);         // 커서 이동 함수
@@ -28,7 +30,17 @@ int ShowCur();                         // 메인 화면의 '>>' 커서 위치 불러오기
 void UpdownCur(int num);               // 메인 화면 커서 이동 함수
 void GetArrowKey(); 
 
-// 전역 변수
+// 게임 구현 함수
+
+void HowToPlay();                      // 플레이 방법 출력 함수
+void SelectPlaneUI();                  // 플레이어 유닛 선택 UI 출력 함수
+void SelectPlane();                    // 플레이어 유닛 선택 함수
+
+// 랭킹 구현 함수
+
+void RankingUI();                      // 랭킹 화면 UI 출력 함수
+
+// 전역 변수, 열거형, 구조체
 
 int area = 0;   // 모드 스위치 (0: title, 1: How to Play, 2: Game Field, 3: Ranking) #TODO
 int title_default_cur = 25;   // 타이틀 화면 커서 초기 위치.
@@ -37,6 +49,8 @@ enum eColorSet { // 콘솔 색상 모음 (0~15)
 	Black = 0, Blue, Green, Cyan, Red, Magenta, Brown, Lightgray, Darkgray,
 	Lightblue, Lightgreen, Lightcyan, Lightred, Lightmagenta, Yellow, White = 15
 };
+
+/* 구현 */
 
 void Gotoxy(short x, short y)
 // 커서를 (x, y)좌표로 이동. 
@@ -164,7 +178,7 @@ void GetArrowKey()
 			if (a == 25) // #TODO 게임 시작
 			{
 				area = 1;  // 초기화면에서 벗어남
-				system("cls");
+				HowToPlay();
 			}
 			else if (a == 30)  // Ranking
 			{
@@ -176,6 +190,38 @@ void GetArrowKey()
 			}
 		}
 	}
+}
+
+void HowToPlay()
+{
+	int x = 20, y = 10;
+	system("cls");
+	Gotoxy(x, y); 
+	printf("************************************************************\n");
+	for (int i = 0; i < 18; i++)
+	{
+		Gotoxy(x, y + i + 1);
+		printf("*                                                          *\n");
+	}
+	Gotoxy(x, y + 19);
+	printf("************************************************************\n");
+
+	// 글자 출력 TODO
+}
+
+void SelectPlaneUI()
+{
+	//TODO
+}
+
+void SelectPlane()
+{
+	//TODO
+}
+
+void RankingUI()
+{
+	//TODO
 }
 
 int main(void)
