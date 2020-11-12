@@ -162,7 +162,7 @@ void GetArrowKey()
 		}
 		else if (temp == 13)    // 엔터키를 입력받았을 때
 		{
-			if (idx==0)        // #TODO 게임 시작
+			if (idx==0)         // #TODO 게임 시작
 			{
 				area = 1;       // 초기화면에서 벗어남
 				HowToPlay();
