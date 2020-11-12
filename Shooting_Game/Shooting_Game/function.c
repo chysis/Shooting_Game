@@ -219,7 +219,7 @@ int plane3[3][3] = { {1,1,1}, {0,1,0}, {0,1,0} }; //T
 int plane4[3][3] = { {0,1,0}, {1,0,1}, {0,1,0} }; //O
 //비행기 종 류
 
-void PrintPlane(const arr[][3], int x, int y) {
+void PrintPlane(int arr[][3], int x, int y) {
 	Gotoxy(x, y);
 	for (int i = 0; i < 3; i++)
 	{
