@@ -26,9 +26,7 @@ void DrawTitle();                      // 타이틀 화면 출력 함수
 void PrintMenu();                      // 메인 메뉴 출력 함수
 void DeleteCursor(int d);              // 메인 화면 '>>' 커서 지우는 함수
 void ArrowCursor(int a);               // 메인 화면 '>>' 커서 출력 함수
-int ShowCur();                         // 메인 화면의 '>>' 커서 위치 불러오기
-void UpdownCur(int num);               // 메인 화면 커서 이동 함수
-void GetArrowKey(); 
+void GetArrowKey();                    // 메인 화면 커서 입력받는 함수
 
 // 게임 구현 함수
 
@@ -44,6 +42,8 @@ void RankingUI();                      // 랭킹 화면 UI 출력 함수
 
 int area = 0;   // 모드 스위치 (0: title, 1: How to Play, 2: Game Field, 3: Ranking) #TODO
 int title_default_cur = 25;   // 타이틀 화면 커서 초기 위치.
+
+int titleCursor[3] = { 25, 30, 35 };   // 타이틀 커서의 y좌표값 배열
 						  
 enum eColorSet { // 콘솔 색상 모음 (0~15)
 	Black = 0, Blue, Green, Cyan, Red, Magenta, Brown, Lightgray, Darkgray,
@@ -129,62 +129,49 @@ void ArrowCursor(int a)
 	printf(">>");
 }
 
-int ShowCur()
-// 메인 화면의 >> 커서 값 불러오기
-{
-	return title_default_cur;
-}
-
-void UpdownCur(int num)
-// 전역변수 cur값 조정
-{
-	title_default_cur += num;
-}
-
 void GetArrowKey()
 // 타이틀 화면에서 방향키를 입력받아 커서를 움직인다.
 {
-	while (area == 0)  // 초기 화면에서만 동작 
+	int idx = 0;                  // 범위: 0~2
+	ArrowCursor(titleCursor[0]);  // 초기 커서 위치
+	while (area == 0)             // 초기 화면에서만 동작 
 	{
-		int a = ShowCur();  // 변경 이전의 커서값 저장
 		int temp;
 		temp = _getch();
-		if (temp == 224)  // 방향키를 입력받았을 때
+		if (temp == 224)          // 방향키를 입력받았을 때
 		{
 			temp = _getch();
-			if (temp == 72)  // 위 방향키
+			if (temp == 72)       // 위 방향키
 			{
-				if (ShowCur() != 25)
+				if (idx!=0)
 				{
-					UpdownCur(-5);
-					DeleteCursor(a);
-					ArrowCursor(ShowCur());
+					DeleteCursor(titleCursor[idx--]);
+					ArrowCursor(titleCursor[idx]);
 					continue;
 				}
 			}
-			else if (temp == 80)  // 아래 방향키
+			else if (temp == 80)   // 아래 방향키
 			{
-				if (ShowCur() != 35)
+				if (idx!=2)
 				{
-					UpdownCur(5);
-					DeleteCursor(a);
-					ArrowCursor(ShowCur());
+					DeleteCursor(titleCursor[idx++]);
+					ArrowCursor(titleCursor[idx]);
 					continue;
 				}
 			}
 		}
-		else if (temp == 13) // 엔터키를 입력받았을 때
+		else if (temp == 13)    // 엔터키를 입력받았을 때
 		{
-			if (a == 25) // #TODO 게임 시작
+			if (idx==0)        // #TODO 게임 시작
 			{
-				area = 1;  // 초기화면에서 벗어남
+				area = 1;       // 초기화면에서 벗어남
 				HowToPlay();
 			}
-			else if (a == 30)  // Ranking
+			else if (idx==1)   // Ranking
 			{
 				// #TODO Ranking 기능
 			}
-			else if (a == 35)  // Exit
+			else if (idx==2)   // Exit
 			{
 				exit(1);
 			}
