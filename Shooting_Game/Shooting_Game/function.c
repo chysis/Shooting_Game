@@ -213,6 +213,37 @@ void HowToPlay()
 	}
 }
 
+int plane1[3][3] = { {1,0,1}, {0,1,0}, {1,0,1} }; //X
+int plane2[3][3] = { {1,0,1}, {1,1,1}, {1,0,1} }; //H
+int plane3[3][3] = { {1,1,1}, {0,1,0}, {0,1,0} }; //T
+int plane4[3][3] = { {0,1,0}, {1,0,1}, {0,1,0} }; //O
+//비행기 종 류
+
+void PrintPlane(const arr[][3], int x, int y) {
+	Gotoxy(x, y);
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			if (arr[i][j] = 1)
+			{
+				Gotoxy(x + j, y + i);
+				SetColor(White, Black);
+				if (x == 20)
+					printf("X");
+				else if (x == 30)
+					printf("H");
+				else if (x == 40)
+					printf("T");
+				else 
+					printf("O");
+			}
+		}
+
+	}
+}
+// 비행기 프린트 해주는 함수
+
 void SelectPlaneUI()
 {
 	//TODO
