@@ -195,9 +195,11 @@ void GetArrowKey()
 void HowToPlay()
 {
 	int x = 20, y = 10;
+	int temp;
+
 	system("cls");
 	Gotoxy(x, y); 
-	printf("************************************************************\n");
+	printf("***********************< How To Play? >*********************\n");
 	for (int i = 0; i < 18; i++)
 	{
 		Gotoxy(x, y + i + 1);
@@ -206,7 +208,22 @@ void HowToPlay()
 	Gotoxy(x, y + 19);
 	printf("************************************************************\n");
 
-	// 글자 출력 TODO
+	Gotoxy(35, 14); printf("위로 이동         :  W");
+	Gotoxy(35, 16); printf("아래로 이동       :  S");
+	Gotoxy(35, 18); printf("오른쪽으로 이동   :  D");
+	Gotoxy(35, 20); printf("왼쪽으로 이동     :  A");
+	Gotoxy(35, 22); printf("총알 발사         : Space Bar");
+
+	SetColor(12, 0);
+	Gotoxy(30, 26); printf("엔터키를 누르시면 다음 화면으로 넘어갑니다...");
+	SetColor(0, 0);
+
+	while (1)
+	{
+		temp = _getch();
+		if (temp == 13)        // 엔터키 입력받았을 때
+			SelectPlaneUI();   // 비행기 선택 화면으로 이동
+	}
 }
 
 void SelectPlaneUI()
