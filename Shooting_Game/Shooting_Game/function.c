@@ -43,7 +43,7 @@ void GetPlayerName();                  // 게임 종료 후 이름 입력 받는 함수
 
 void RankingUI();                      // 랭킹 화면 UI 출력 함수
 
-									   // 전역 변수, 열거형, 구조체
+// 전역 변수, 열거형, 구조체
 
 int planeCode;      // 플레이어가 선택한 비행기 코드
 int area = 0;   // 모드 스위치 (0: title, 1: How to Play, 2: Select Plane, 3: Game Field, 4: Ranking) #TODO
@@ -58,32 +58,47 @@ enum ColorSet { // 콘솔 색상 모음 (0~15)
 	Lightblue, Lightgreen, Lightcyan, Lightred, Lightmagenta, Yellow, White = 15
 };
 
-typedef struct bullet { // 총알의 위치를 알려주는 구조체
+struct StartInfo
+{
 	int x, y;
-} bullet;
+};
 
-typedef struct user_stat { // 플레이어의 스텟
+struct PlayerInfo
+{
 	int x, y;
-	int life;
-	int check;
-	bullet bullet;
-} User;
+	int liveFlag;   // 기본값 1(alive), 0: death
+};
 
-struct enemy_stat {  // 적군의 스텟
-	BOOL exist;
-	int Type;
+struct BossInfo
+{
 	int x, y;
-	int Delta;
-	int nFrame;
-	int nStay;
-} Enemy[MAX_ENEMY];
+	int liveFlag;
+	int moveFlag;
+	int startX;
+};
 
-struct ball_stat {  // 총알의 스텟
-	BOOL exist;
+struct EnemyInfo
+{
 	int x, y;
-	int nFrame;
-	int nStay;
-} Ball[MAX_BALL];
+	int liveFlag;
+	int initX;     // 초기 x 좌표값
+	int initY;     // 초기 y 좌표값
+	int moveFlag;
+};
+
+struct ShotInfo
+{
+	int x, y;
+	int type;
+	int useFlag;
+};
+
+struct ItemInfo
+{
+	int x, y;
+	int type;
+	int useFlag;
+};
 
 char *arEnemy[] = { "oOoOo", "[-@-]", "^_*_^" };  // 적 유닛 배열
 
@@ -382,10 +397,9 @@ void GetPlaneArrowKey()
 		{
 			area = 3;
 			planeCode = idx;
-			break;
+			ShootingGameUI();
 		}
 	}
-	ShootingGameUI();
 }
 
 void SelectPlane()
