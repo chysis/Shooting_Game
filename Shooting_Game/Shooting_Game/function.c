@@ -13,6 +13,8 @@
 #define plane_cursor 14                // 비행기 선택화면 커서의 y좌표 값                
 #define MAX_ENEMY 10                   // 적군 최대 수
 #define MAX_BALL 20                    // 적군 최대 총알 수
+#define MAX_NAME 10                    // 이름 최대 글자 수
+#define MAX_INPUT 5                    // 랭킹 최대 데이터 수
 
 // 콘솔 관리 함수
 
@@ -39,7 +41,7 @@ void ShootingGameUI();                 // 게임 UI출력 함수
 void ShootingGame();                   // 게임 함수
 void GetPlayerName();                  // 게임 종료 후 이름 입력 받는 함수
 
-									   // 랭킹 구현 함수
+void Ranking();						   // 랭킹 구현 함수
 
 void RankingUI();                      // 랭킹 화면 UI 출력 함수
 
@@ -99,6 +101,12 @@ struct ItemInfo
 	int type;
 	int useFlag;
 };
+
+typedef struct
+{
+	char name[MAX_NAME];
+	int score;
+}DATA;
 
 char *arEnemy[] = { "oOoOo", "[-@-]", "^_*_^" };  // 적 유닛 배열
 
@@ -427,7 +435,55 @@ void ShootingGame()
 
 void RankingUI()
 {
-	//TODO
+	
+}
+
+void Ranking()
+{
+	int i = 0, j = 0;
+	DATA input[MAX_INPUT] = { 0 };
+	DATA temp;
+
+	FILE *fp = fopen("C:\\Rank.txt", "r");
+
+	if (fp == NULL)
+	{
+		printf("파일 열기 실패!\n");
+		exit(0);
+	}
+
+	for (int i = 0; i < MAX_INPUT; i++)
+	{
+		fscanf(fp, "%s %d", input[i].name, &input[i].score);
+	}
+
+	fclose(fp);
+
+	for (i = MAX_INPUT - 1; i > 0; i--)
+	{
+		for (j = 0; j < i; j++)
+		{
+			if (input[j].score < input[j + 1].score)
+			{
+				temp = input[j + 1];
+				input[j + 1] = input[j];
+				input[j] = temp;
+			}
+		}
+	}
+
+	printf("\n\t\t\t      -----------------\n");
+	printf("\t\t\t     |     Ranking     |\n");
+	printf("\t\t\t      -----------------\n\n");
+	printf("\tRank\t\t\t  Nickname\t\t\t  Score\n\n");
+
+	for (i = 0; i < MAX_INPUT; i++)
+	{
+		printf("\t %d\t\t\t%10s\t\t\t%7d\n\n", i + 1, input[i].name, input[i].score);
+	}
+	printf("\n");
+	system("pause");
+	return 0;
 }
 
 int main(void)
