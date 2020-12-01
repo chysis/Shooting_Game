@@ -1,9 +1,10 @@
 #pragma once
+#include <stdbool.h>
 #define WIDTH 101  //81   // 가로 80줄 +1은 NULL을 넣어주기 위함.
 #define HEIGHT 30  //24    // 세로 24줄
 #define stdhdl GetStdHandle(STD_OUTPUT_HANDLE)
 
-void Initial();  //커서를 안보이게 해주는 함수
+void Initial(bool vis);  //커서를 안보이게 해주는 함수
 
 void MoveCursor(int x, int y);     // 커서를 움직이는 함수
 

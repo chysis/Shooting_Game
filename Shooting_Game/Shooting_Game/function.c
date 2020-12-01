@@ -58,7 +58,7 @@ char MainScreen[HEIGHT][WIDTH] = {
 #define B_COUNT 7
 #define BOSS_LIFE 36          // 보스 피한칸 늘릴때마다 +2 씩해주기
 
-#define MAX_INPUT 5
+#define MAX_INPUT 30
 #define MAX_NAME 10           // 입력받을 수 있는 최대 글자
 
 int BossLifeCount = BOSS_LIFE;
@@ -177,7 +177,7 @@ void main() {
 
 	SetConsoleSize();
 	srand((unsigned)time(NULL));
-	Initial();  // 커서 안 보이게
+	Initial(FALSE);  // 커서 안 보이게
 	StartGameInitialObject();
 	while (stagecount == 0)
 	{
@@ -207,7 +207,7 @@ void main() {
 			CheckCrashItem();
 			Draw();
 			if (CheckEndGame() == 1)
-				break;
+				SaveRecord();
 			if (CheckClearGame() == 1)
 				stagecount++;
 		}
@@ -227,7 +227,7 @@ void main() {
 			ItemAction();
 			Draw();
 			if (CheckEndGame() == 1)
-				break;
+				SaveRecord();
 			if (CheckClearGame() == 1)
 				stagecount++;
 		}
@@ -235,7 +235,7 @@ void main() {
 		Sleep(100);
 	}
 
-	Initial();
+	Initial(FALSE);
 	PlayerInitialObject();
 	BossInitalObject();
 	while (stagecount == 3)
@@ -249,9 +249,9 @@ void main() {
 			ItemAction();
 			Draw();
 			if (CheckEndGame() == 1)
-				break;
+				SaveRecord();
 			if (BossClearGame() == 1)
-				break;
+				SaveRecord();
 		}
 		Sleep(100);
 	}
@@ -404,7 +404,7 @@ void PlayerAction() {            // 플레이어 비행기 이동 함수
 		}
 		if ((GetAsyncKeyState(VK_LEFT) & 0x8000))
 		{
-			if (player.x > WIDTH - 78)
+			if (player.x > WIDTH - 98)
 			{
 				if (SpeedCount == 1)
 					player.x -= 2;
@@ -520,7 +520,7 @@ void Draw() {
 	}
 
 	DrawPlayer();        // 유저 비행기 출력
-	DrawEnemy();        // 적비행기 출력
+	DrawEnemy();         // 적비행기 출력
 	DrawShot();
 	DrawPlayerInfo();
 	DrawScore();
@@ -533,11 +533,10 @@ void Draw() {
 	for (i = 0; i < HEIGHT; i++)
 	{
 		MoveCursor(0, i);        //  커서의 시작 지점 즉 y축을 바꾸어주며 한줄단위로 출력
-		printf(screen[i]);        //    화면의 i번째행 을 출력   ==  printf("%s",screen[i]);
+		printf(screen[i]);       //  화면의 i번째행 을 출력   ==  printf("%s",screen[i]);
 
 		MoveCursor(70, 23);
 		printf("%d", Score2);
-
 	}
 }
 
@@ -673,7 +672,7 @@ void DrawShot() {
 		{
 			int x = shot[i].x;
 			int y = shot[i].y;
-			if ((x >= 0 && x<WIDTH - 1) && (y > 0 && y < 24))
+			if ((x >= 0 && x<WIDTH - 1) && (y > 0 && y < 30))
 			{
 				if (shot[i].Type == E_SHOT)
 					screen[y][x] = eShot;
@@ -688,9 +687,11 @@ void DrawShot() {
 				}
 				else if (shot[i].Type == B_SHOT)
 				{
+					SetColor(Yellow, Black);
 					screen[y][x] = bShot;
 					screen[y][x + 2] = bShot;
 					screen[y][x - 2] = bShot;
+					SetColor(White, Black);
 				}
 			}
 		}
@@ -931,7 +932,7 @@ int BossClearGame() {
 
 void SetStartPosition() {
 
-	Initial();                    // 커서 안보이게
+	Initial(FALSE);                    // 커서 안보이게
 	PlayerInitialObject();        // 플레이어 비행기 시작 좌표 설정
 	EnemyInitialObject();         // 적 비행기 좌표설정
 
@@ -965,7 +966,7 @@ void DrawItem() {
 			x = item[i].x;
 			y = item[i].y;
 
-			if ((x >= 0 && x<WIDTH - 1) && (y > 0 && y < 24))
+			if ((x >= 0 && x<WIDTH - 1) && (y > 0 && y < 30))
 			{
 				for (j = 0; j<ITEM_COUNT; j++)
 				{
@@ -1020,14 +1021,40 @@ void ItemAction() {
 
 void SaveRecord() {
 
+	DATA data;
+
+	ClearScreen();
+	MoveCursor(40, 12);
+	printf("Score: %d", Score2);
+	MoveCursor(40, 13);
+	printf("이름을 입력하세요:");
+	Initial(TRUE);
+	scanf("%s", data.name);
+	
+	data.score = Score2;
+
+	FILE *fp = fopen("Rank.txt", "a");
+
+	fwrite(&data, sizeof(data), 1, fp);
+
+	fclose(fp);
+	Sleep(1000);
+
+	SetColor(Lightred, Black);
+	MoveCursor(40, 15);
+	printf("기록이 저장되었습니다.");
+	SetColor(White, Black);
+	Sleep(1000);
+	exit(-1);
 }
 
 void Ranking() {
 	int i = 0, j = 0;
 	DATA input[MAX_INPUT] = { 0 };
 	DATA temp;
+	int tem;
 
-	FILE *fp = fopen("C:\\Rank.txt", "r");
+	FILE *fp = fopen("Rank.txt", "r");
 
 	if (fp == NULL)
 	{
@@ -1060,7 +1087,7 @@ void Ranking() {
 	printf("\t\t\t      -----------------\n\n");
 	printf("\tRank\t\t\t  Nickname\t\t\t  Score\n\n");
 
-	for (i = 0; i < MAX_INPUT; i++)
+	for (i = 0; i < 5; i++)
 	{
 		printf("\t %d\t\t\t%10s\t\t\t%7d\n\n", i + 1, input[i].name, input[i].score);
 	}

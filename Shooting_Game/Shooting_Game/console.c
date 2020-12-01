@@ -1,13 +1,14 @@
 #include <Windows.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "console.h"
 
 HANDLE hConsole;
 
-void Initial() {            // 커서 안보이게 해주는 함수
+void Initial(bool vis) {            // 커서 관리 함수
 	CONSOLE_CURSOR_INFO csCursor;
 
-	csCursor.bVisible = FALSE;
+	csCursor.bVisible = vis;
 	csCursor.dwSize = 1;
 
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
