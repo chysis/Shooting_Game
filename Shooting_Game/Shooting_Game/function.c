@@ -48,7 +48,7 @@ char MainScreen[HEIGHT][WIDTH] = {
 #define B_SHOT 2
 #define P_SHOT 0
 #define E_SHOT 1
-#define SHOT_MAX 40
+#define SHOT_MAX 50
 #define PLAYER_LIFE 12        // 유저 피한칸 늘릴때마다 +2씩해주기
 #define SCORE_COUNT 8
 #define ITEM_COUNT 2
@@ -1130,7 +1130,7 @@ void CheckCrashItem() {
 	{
 		if (player.liveFlag == 1)
 		{
-			if ((item[i].y <= (player.y)) && (item[i].y >= (player.y)) && ((item[i].x >= (player.x - 2) && (item[i].x <= (player.x + 2)))))
+			if ((item[i].y <= (player.y)) && (item[i].y >= (player.y-1)) && ((item[i].x >= (player.x - 2) && (item[i].x <= (player.x + 2)))))
 			{
 				item[i].UseFlag = 0;
 				if (item[i].Type <= POWER_ITEM)
