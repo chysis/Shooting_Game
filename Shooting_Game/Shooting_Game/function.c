@@ -40,27 +40,27 @@ char MainScreen[HEIGHT][WIDTH] = {
 	"                                                                                                   \n"
 };
 
-#define P_COUNT 3
-#define E_COUNT 3
-#define ENEMY_FLIGHT 10
-#define ENEMY_LINE 3
-#define ENEMY_NUM 30
-#define B_SHOT 2
-#define P_SHOT 0
-#define E_SHOT 1
-#define SHOT_MAX 50
-#define PLAYER_LIFE 12        // 유저 피한칸 늘릴때마다 +2씩해주기
+#define P_COUNT 3             // 플레이어 비행기 줄 당 문자 개수 (for문에 사용할 용도)
+#define E_COUNT 3             // 적 개체 문자 개수 (for문에 사용할 용도)
+#define B_COUNT 7             // 보스 개체 문자 개수 (for문에 사용할 용도)
+#define ENEMY_FLIGHT 10       // 한 줄에 등장할 적의 개체 수
+#define ENEMY_LINE 3          // 적이 등장할 줄 수
+#define ENEMY_NUM 30          // 총 적 개체 수
+#define B_SHOT 2              //
+#define P_SHOT 0              //
+#define E_SHOT 1              // SHOT: Boss, Player, Enemy 총알 분류용 고유값
+#define SHOT_MAX 50           // 화면에 표시될 수 있는 총알의 총 개수
+#define PLAYER_LIFE 12        // 유저 피한칸 늘릴때마다 +2씩해주기(하트 문자가 2byte라서)
 #define SCORE_COUNT 8
 #define ITEM_COUNT 2
 #define ITEM_MAX 3
-#define POWER_ITEM 2
-#define LIFE_ITEM 4
-#define SPEED_ITEM 6
-#define B_COUNT 7
+#define POWER_ITEM 2          //
+#define LIFE_ITEM 4           //
+#define SPEED_ITEM 6          // ITEM 고유값
 #define BOSS_LIFE 36          // 보스 피한칸 늘릴때마다 +2 씩해주기
 
 #define plane_cursor 14
-#define MAX_INPUT 30
+#define MAX_INPUT 10          // 입력받을 수 있는 게임 결과 개수
 #define MAX_NAME 10           // 입력받을 수 있는 최대 글자
 
 int BossLifeCount = BOSS_LIFE;
@@ -73,26 +73,23 @@ char bShot = '$';
 char pShot = '|';
 char pShot2 = '@';
 char eShot = '*';
-char startcursor[3] = ">>";
-char planecursor[4] = "[v]";
-//char pUnit[P_COUNT + 1] = ".=^=.";        // +1은 뒤에 NULL을 붙여주기위해서
-char eUnit[E_COUNT + 1] = "=.=";
-char eUnit2[E_COUNT + 1] = "oOo";
+char startcursor[3] = ">>";          // 메인화면 커서
+char planecursor[4] = "[v]";         // 비행기 선택 화면 커서
+char eUnit[E_COUNT + 1] = "=.=";     // 1스테이지 적 모양
+char eUnit2[E_COUNT + 1] = "oOo";    // 2스테이지 적 모양
 char PlayerLife[PLAYER_LIFE + 1] = " HP : ♥♥♥";
-char Power = 'P';
-char Life = 'L';
-char Speed = 'S';
-char Score[SCORE_COUNT + 1] = "Score : ";
+char Power = 'P';                    // 파워 아이템 모양
+char Life = 'L';                     // 생명 아이템 모양
+char Speed = 'S';                    // 스피드 아이템 모양
+char Score[SCORE_COUNT + 1] = "Score : "; 
 char bUnit[B_COUNT + 1] = "!|=@=|!";
-int Score2 = 0;
-int planeCode;          // 플레이어가 선택한 비행기 코드
+int Score2 = 0;         // 게임 점수 카운팅 변수
+int planeCode;          // 플레이어가 선택한 비행기 코드 (아래의 plane[4][3][3]에서 첫 번째 인자로 사용)
 
 enum ColorSet { // 콘솔 색상 모음 (0~15)
 	Black = 0, Blue, Green, Cyan, Red, Magenta, Brown, Lightgray, Darkgray,
 	Lightblue, Lightgreen, Lightcyan, Lightred, Lightmagenta, Yellow, White = 15
 };
-
-//int planeCursor[4] = { 19, 39, 59, 79 };  // 비행기 선택 커서의 x좌표값 배열
 
 char plane[4][3][3] = { // 플레이어 유닛 배열
 	{
@@ -117,37 +114,37 @@ char plane[4][3][3] = { // 플레이어 유닛 배열
 	}
 };
 
-struct StartInfo {
+struct StartInfo {       // 메인화면 커서 출력 좌표 저장 
 	int x, y;
 };
 
-struct PlaneInfo {
+struct PlaneInfo {       // 비행기 선택화면 커서 출력 좌표 저장
 	int x, y;
 };
 
-struct PlayerInfo {
+struct PlayerInfo {      // 플레이어 정보 저장
 	int x, y;
-	int liveFlag;        // 플레이어가 살았는지를 나타낸다. 1로초기화시키고 죽으면 0이되어 게임을 끝낸다.
+	int liveFlag;        // 플레이어가 살았는지 나타낸다. 1로 초기화 시키고 죽으면 0이 된다.
 };
 
-struct BossInfo {
+struct BossInfo {        // 보스 정보 저장
 	int x, y;
-	int LiveFlag;
+	int LiveFlag;        // 살아있는지 여부 판단 (1이면 살아있고 0이면 죽음)
 	int MoveFlag;
-	int StartX;
+	int StartX;          // 기준 x좌표값
 };
 
-struct EnemyInfo {
+struct EnemyInfo {       // 적 정보 저장
 	int x, y;
 	int liveFlag;
-	int StartX;            //    기준점좌표값 x - StartX 절대값을 구해서.
+	int StartX;          // 기준점좌표값 x - StartX 절댓값을 구해서.
 	int StartY;
 	int MoveFlag;        // 0 = x좌표를 -- 좌 무빙 , 1 = x좌표를 ++ 우 무빙
 };
 
-struct ShotInfo {
+struct ShotInfo {        // 총알 정보 저장
 	int x, y;
-	int Type;
+	int Type;            // 플레이어, 적, 보스 총알 구분
 	int UseFlag;
 };
 
@@ -1203,6 +1200,7 @@ int CheckClearGame() {
 	Sleep(1000);
 	return 1;
 }
+
 int BossClearGame() {
 	if (boss.LiveFlag == 1)
 		return 0;
@@ -1334,7 +1332,7 @@ void SaveRecord() {
 
 void Ranking() {
 	int i = 0, j = 0;
-	DATA input[MAX_INPUT] = { 0 };
+	DATA input[MAX_INPUT] = { 0, };
 	DATA temp;
 	int tem;
 
