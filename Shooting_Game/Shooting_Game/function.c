@@ -3,6 +3,7 @@
 #include <memory.h>
 #include <time.h>
 #include <windows.h>
+#include <conio.h>
 #include "console.h"
 
 char screen[HEIGHT][WIDTH];        //    [행][열]
@@ -39,7 +40,7 @@ char MainScreen[HEIGHT][WIDTH] = {
 	"                                                                                                   \n"
 };
 
-#define P_COUNT 5
+#define P_COUNT 3
 #define E_COUNT 3
 #define ENEMY_FLIGHT 10
 #define ENEMY_LINE 3
@@ -58,6 +59,7 @@ char MainScreen[HEIGHT][WIDTH] = {
 #define B_COUNT 7
 #define BOSS_LIFE 36          // 보스 피한칸 늘릴때마다 +2 씩해주기
 
+#define plane_cursor 14
 #define MAX_INPUT 30
 #define MAX_NAME 10           // 입력받을 수 있는 최대 글자
 
@@ -72,8 +74,10 @@ char pShot = '|';
 char pShot2 = '@';
 char eShot = '*';
 char startcursor[3] = ">>";
-char pUnit[P_COUNT + 1] = ".=^=.";        // +1은 뒤에 NULL을 붙여주기위해서
+char planecursor[4] = "[v]";
+//char pUnit[P_COUNT + 1] = ".=^=.";        // +1은 뒤에 NULL을 붙여주기위해서
 char eUnit[E_COUNT + 1] = "=.=";
+char eUnit2[E_COUNT + 1] = "oOo";
 char PlayerLife[PLAYER_LIFE + 1] = " HP : ♥♥♥";
 char Power = 'P';
 char Life = 'L';
@@ -81,15 +85,46 @@ char Speed = 'S';
 char Score[SCORE_COUNT + 1] = "Score : ";
 char bUnit[B_COUNT + 1] = "!|=@=|!";
 int Score2 = 0;
+int planeCode;          // 플레이어가 선택한 비행기 코드
 
 enum ColorSet { // 콘솔 색상 모음 (0~15)
 	Black = 0, Blue, Green, Cyan, Red, Magenta, Brown, Lightgray, Darkgray,
 	Lightblue, Lightgreen, Lightcyan, Lightred, Lightmagenta, Yellow, White = 15
 };
 
+//int planeCursor[4] = { 19, 39, 59, 79 };  // 비행기 선택 커서의 x좌표값 배열
+
+char plane[4][3][3] = { // 플레이어 유닛 배열
+	{
+		{"X X"},
+		{" X "},   // X
+		{"X X"}
+	},
+	{
+		{"H H"},
+		{"HHH"},   // H
+		{"H H"}
+	},
+	{
+		{"TTT"},
+		{" T "},   // T
+		{" T "}
+	},
+	{
+		{" O "},
+		{"O O"},   // O
+		{" O "}
+	}
+};
+
 struct StartInfo {
 	int x, y;
 };
+
+struct PlaneInfo {
+	int x, y;
+};
+
 struct PlayerInfo {
 	int x, y;
 	int liveFlag;        // 플레이어가 살았는지를 나타낸다. 1로초기화시키고 죽으면 0이되어 게임을 끝낸다.
@@ -120,7 +155,6 @@ struct ItemInfo {
 	int x, y;
 	int Type;
 	int UseFlag;
-
 };
 
 typedef struct {
@@ -129,6 +163,7 @@ typedef struct {
 }DATA;
 
 struct StartInfo StartGame;
+struct PlaneInfo ChoosePlane;
 struct BossInfo boss;
 struct ItemInfo item[ITEM_MAX];
 struct ShotInfo shot[SHOT_MAX];
@@ -170,6 +205,15 @@ void CheckCrash();
 void ItemAction();
 void BossAction();
 
+void SelectPlaneInitialObject();
+void DrawSelectPlane();
+void SelectPlaneAction();
+int SelectPlaneAction2();
+void PrintPlane(char arr[][3][3], int type, int x, int y);
+void DeleteCursor(int d);
+void ArrowCursor(int a);
+//int GetPlaneArrowKey();
+void SelectPlane();
 void SaveRecord();
 void Ranking();
 
@@ -186,7 +230,9 @@ void main() {
 			StartGameAction();
 			DrawMain();
 			if (StartGameAction2() == 1)
-				stagecount++;
+			{
+				stagecount = 5;
+			}
 			else if (StartGameAction2() == 2)
 				Ranking();
 			else if (StartGameAction2() == 3)
@@ -194,6 +240,35 @@ void main() {
 		}
 		Sleep(100);
 	}
+
+	SelectPlaneInitialObject();
+	while (stagecount == 5)
+	{
+		SelectPlane();
+		DrawSelectPlane();
+		SelectPlaneAction();
+		if (SelectPlaneAction2() == 1)
+		{
+			planeCode = 0;
+			stagecount = 1;
+		}
+		else if (SelectPlaneAction2() == 2)
+		{
+			planeCode = 1;
+			stagecount = 1;
+		}
+		else if (SelectPlaneAction2() == 3)
+		{
+			planeCode = 2;
+			stagecount = 1;
+		}
+		else if (SelectPlaneAction2() == 4)
+		{
+			planeCode = 3;
+			stagecount = 1;
+		}
+	}
+
 	SetStartPosition();
 	while (stagecount == 1)
 	{
@@ -257,6 +332,134 @@ void main() {
 	}
 }
 
+void SelectPlane()
+{
+	system("cls");
+	MoveCursor(30, 7);
+	printf("비행기를 선택하세요.");
+	PrintPlane(plane, 0, 18, 10);
+	PrintPlane(plane, 1, 38, 10);
+	PrintPlane(plane, 2, 58, 10);
+	PrintPlane(plane, 3, 78, 10);
+	Sleep(100);
+}
+
+/*int GetPlaneArrowKey()
+{
+	int idx = 0;                  // 범위: 0~3
+	ArrowCursor(planeCursor[0]);  // 초기 커서 위치
+	while (stagecount == 5)
+	{
+		if ((GetAsyncKeyState(VK_LEFT) & 0x8000))
+		{
+			if (idx=0)
+			{
+				DeleteCursor(planeCursor[0]);
+				ArrowCursor(planeCursor[1]);
+				idx = 1;
+			}
+			if (idx = 1)
+			{
+				DeleteCursor(planeCursor[1]);
+				ArrowCursor(planeCursor[2]);
+				idx = 2;
+			}
+			if (idx = 2)
+			{
+				DeleteCursor(planeCursor[2]);
+				ArrowCursor(planeCursor[3]);
+				idx = 3;
+			}
+		}
+		if ((GetAsyncKeyState(VK_RIGHT) & 0x8000))
+		{
+			if (idx=3)
+			{
+				DeleteCursor(planeCursor[3]);
+				ArrowCursor(planeCursor[2]);
+				idx = 2;
+			}
+			if (idx = 2)
+			{
+				DeleteCursor(planeCursor[2]);
+				ArrowCursor(planeCursor[1]);
+				idx = 1;
+			}
+			if (idx = 1)
+			{
+				DeleteCursor(planeCursor[1]);
+				ArrowCursor(planeCursor[0]);
+				idx = 0;
+			}
+		}
+		/*int temp;
+		temp = _getch();
+		if (temp == 224)          // 방향키를 입력받았을 때
+		{
+			temp = _getch();
+			if (temp == 75)       // 왼쪽 방향키
+			{
+				if (idx != 0)
+				{
+					DeleteCursor(planeCursor[idx--]);
+					ArrowCursor(planeCursor[idx]);
+					continue;
+				}
+			}
+			else if (temp == 77)   // 오른쪽 방향키
+			{
+				if (idx != 3)
+				{
+					DeleteCursor(planeCursor[idx++]);
+					ArrowCursor(planeCursor[idx]);
+					continue;
+				}
+			}
+		}//
+		if ((GetAsyncKeyState(VK_RETURN) & 0x8000))    // 엔터키를 입력받았을 때
+		{
+			planeCode = idx;
+			stagecount = 1;
+			return 1;
+		}
+	}
+}*/
+
+void DeleteCursor(int d)
+// 커서 제거 (type 1: 메인화면, 2: 비행기 선택화면)
+{
+	//screen[plane_cursor][d] = "  ";
+	MoveCursor(d, plane_cursor);
+	printf("  ");
+	return;
+}
+
+void ArrowCursor(int a)
+// 메뉴 선택용 화살표 커서 (type 1: 메인화면, 2: 비행기 선택화면)
+{
+	//screen[plane_cursor][a] = "△";
+	MoveCursor(a, plane_cursor);
+	printf("△");
+	return;
+}
+
+void PrintPlane(char arr[][3][3], int type, int x, int y)
+{
+	// 비행기 프린트 해주는 함수
+	//MoveCursor(x, y);
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			//screen[y][x] = arr[type][i][j];
+			MoveCursor(x + j, y + i);
+			printf("%c", arr[type][i][j]);
+			//x++;
+		}
+		//y++;
+	}
+}
+
 void BossInitalObject() {
 
 	boss.x = 39;
@@ -281,7 +484,6 @@ void DrawBoss() {
 		{
 			if (x >= 0 && x <WIDTH - 1)
 				screen[y][x] = bUnit[i];
-
 			x++;
 		}
 	}
@@ -440,9 +642,29 @@ void StartGameAction() {
 		}
 		if ((GetAsyncKeyState(VK_DOWN) & 0x8000))
 		{
-			if (StartGame.y <= 14)
+			if (StartGame.y <= 16)
 			{
 				StartGame.y++;
+			}
+		}
+	}
+}
+
+void SelectPlaneAction() {
+	if (stagecount == 5)
+	{
+		if ((GetAsyncKeyState(VK_LEFT) & 0x8000))
+		{
+			if (ChoosePlane.x > 18)
+			{
+				ChoosePlane.x -= 20;
+			}
+		}
+		if ((GetAsyncKeyState(VK_RIGHT) & 0x8000))
+		{
+			if (ChoosePlane.x <= 78)
+			{
+				ChoosePlane.x += 20;
 			}
 		}
 	}
@@ -464,6 +686,31 @@ int StartGameAction2() {
 			else if (StartGame.y == 16)
 			{
 				return 3;
+			}
+		}
+	}
+}
+
+int SelectPlaneAction2() {
+	if (stagecount == 5)
+	{
+		if ((GetAsyncKeyState(VK_RETURN) & 0x8000))
+		{
+			if (ChoosePlane.x == 18)
+			{
+				return 1;
+			}
+			else if (ChoosePlane.x == 38)
+			{
+				return 2;
+			}
+			else if (ChoosePlane.x == 58)
+			{
+				return 3;
+			}
+			else if (ChoosePlane.x == 78)
+			{
+				return 4;
 			}
 		}
 	}
@@ -499,7 +746,7 @@ void EnemyInitialObject() {        // 적 비행기 좌표설정    ( i 는 적비행기 객체
 	{
 		for (int k = 0; k < ENEMY_FLIGHT; k++)
 		{
-			enemy[i].x = 17 + 6 * k;
+			enemy[i].x = 10 + 8 * k;
 			enemy[i].y = 3 + 3 * j;
 			enemy[i].liveFlag = 1;
 			enemy[i].StartX = enemy[i].x;    //enemy[i]의 x좌표와 처음 동일시
@@ -567,6 +814,13 @@ void StartGameInitialObject() {
 	int y = StartGame.y;
 }
 
+void SelectPlaneInitialObject() {
+	ChoosePlane.x = 18;
+	ChoosePlane.y = 14;
+	int x = ChoosePlane.x;
+	int y = ChoosePlane.y;
+}
+
 void DrawEnemy() {        // 적 비행기 좌표 지정
 
 	int i, j;
@@ -582,12 +836,23 @@ void DrawEnemy() {        // 적 비행기 좌표 지정
 			if (y < 0 || y >= HEIGHT)
 				continue;
 
-			for (j = 0; j < E_COUNT; j++)
+			if (stagecount == 1)
 			{
-				if (x >= 0 && x < WIDTH - 1)
-					screen[y][x] = eUnit[j];
-
-				x++;
+				for (j = 0; j < E_COUNT; j++)
+				{
+					if (x >= 0 && x < WIDTH - 1)
+						screen[y][x] = eUnit[j];
+					x++;
+				}
+			}
+			else if (stagecount == 2)
+			{
+				for (j = 0; j < E_COUNT; j++)
+				{
+					if (x >= 0 && x < WIDTH - 1)
+						screen[y][x] = eUnit2[j];
+					x++;
+				}
 			}
 		}
 	}
@@ -598,17 +863,24 @@ void DrawPlayer() {        // 플레이어 비행기 출력
 	int x = player.x - P_COUNT / 2;
 	int y = player.y;
 
-	if (y < 0 || y >= HEIGHT)        // y값이 화면 밖으로나가면 오류로 실행종료
+	if (y < 0 || y >= HEIGHT-3)        // y값이 화면 밖으로나가면 오류로 실행종료
 		return;
 
 	if (player.liveFlag == 1)
 	{
 		for (i = 0; i < P_COUNT; i++)
 		{
-			if (x >= 0 && x <WIDTH - 1)
-				screen[y][x] = pUnit[i];
-
-			x++;
+			for (int j = 0; j < P_COUNT; j++)
+			{
+				if (x >= 0 && x < WIDTH - 3)
+				{
+					//MoveCursor(x + j, y + i);
+					//printf(plane[planeCode][i][j]);
+					screen[y+i][x+j] = plane[planeCode][i][j];
+					//x++;
+				}
+				//y++;
+			}
 		}
 	}
 }
@@ -626,6 +898,19 @@ void DrawStartGame() {
 	}
 }
 
+void DrawSelectPlane() {
+	int i = 0;
+	int x = ChoosePlane.x;
+	int y = ChoosePlane.y;
+
+	MoveCursor(x, y);
+	for (i = 0; i < 3; i++)
+	{
+		printf("%c", planecursor[i]);
+	}
+
+}
+
 void DrawPlayerInfo() {
 	int i;
 	int x = 0;
@@ -634,7 +919,6 @@ void DrawPlayerInfo() {
 	for (i = 0; i<LifeCount; i++)
 	{
 		screen[y][x] = PlayerLife[i];
-
 		x++;
 	}
 }
@@ -704,21 +988,21 @@ void ShotAction() {
 	{
 		if (shot[i].UseFlag == 1)
 		{
-			if (shot[i].Type == E_SHOT)
+			if (shot[i].Type == E_SHOT)  // 적 총알
 			{
-				shot[i].y++;
+				shot[i].y++;  // y값 증가 -> 화면 밑으로 내려감
 				if (shot[i].y >= HEIGHT)
 					shot[i].UseFlag = 0;
 			}
-			else if (shot[i].Type == P_SHOT)
+			else if (shot[i].Type == P_SHOT)  // 플레이어 총알
 			{
-				shot[i].y--;
+				shot[i].y--;   // y값 감소 -> 화면 위로 올라감
 				if (shot[i].y <= 0)
 					shot[i].UseFlag = 0;
 			}
-			else if (shot[i].Type == B_SHOT)
+			else if (shot[i].Type == B_SHOT)  // 보스 총알
 			{
-				shot[i].y++;
+				shot[i].y++;  // y값 증가 -> 화면 밑으로 내려감
 				if (shot[i].y <= 0)
 					shot[i].UseFlag = 0;
 			}
@@ -742,17 +1026,17 @@ void CheckCrash() {
 					{
 						if (PowerCount == 1)
 						{
-							if (((shot[i].y == enemy[j].y)) && ((shot[i].x >(enemy[j].x - 2)) && (shot[i].x < (enemy[j].x + 2))))
+							if (((shot[i].y == enemy[j].y)) && ((shot[i].x >(enemy[j].x - 2)) && (shot[i].x < (enemy[j].x + 2))))  // 충돌 판정
 							{
 								enemy[j].liveFlag = 0;
-								if (enemy[j].liveFlag == 0)
+								if (enemy[j].liveFlag == 0)  // 적이 죽으면
 								{
-									itemdrop = rand() % 100 + 1;
-									if (itemdrop < 7)
+									itemdrop = rand() % 100 + 1;  // 1~100
+									if (itemdrop < 6)  // 5%의 확률로 아이템 생성
 										CreateItem(itemdrop, enemy[j].x, enemy[j].y);
 								}
 								shot[i].UseFlag = 0;
-								Score2 += 50;
+								Score2 += 50;  // 50점 추가
 								break;
 							}
 						}
@@ -764,7 +1048,7 @@ void CheckCrash() {
 								if (enemy[j].liveFlag == 0)
 								{
 									itemdrop = rand() % 100 + 1;
-									if (itemdrop < 7)
+									if (itemdrop < 6)
 										CreateItem(itemdrop, enemy[j].x, enemy[j].y);
 								}
 								shot[i].UseFlag = 0;
@@ -790,7 +1074,7 @@ void CheckCrash() {
 						{
 							boss.LiveFlag = 0;
 							shot[i].UseFlag = 0;
-							Score2 += 1000;
+							Score2 += 1000;  // 보스 1000점 추가
 							break;
 						}
 					}
@@ -799,15 +1083,15 @@ void CheckCrash() {
 		}
 		if (shot[i].UseFlag == 1)
 		{
-			if (shot[i].Type == E_SHOT)
+			if (shot[i].Type == E_SHOT)  // 적 총알
 			{
 				if (player.liveFlag == 1)
 				{
 					if ((shot[i].y == player.y) && ((shot[i].x >= (player.x - P_COUNT / 2)) && (shot[i].x <= (player.x + P_COUNT / 2))))
 					{
 						shot[i].UseFlag = 0;
-						LifeCount -= 2;
-						if (LifeCount == 6)
+						LifeCount -= 2;  // 하트 문자 하나가 2바이트이므로 2 감소
+						if (LifeCount == 6)  // 12에서 시작, 3개 감소 시 게임 오버 판정
 						{
 							player.liveFlag = 0;
 							shot[i].UseFlag = 0;
@@ -819,7 +1103,7 @@ void CheckCrash() {
 		}
 		if (shot[i].UseFlag == 1)
 		{
-			if (shot[i].Type == B_SHOT)
+			if (shot[i].Type == B_SHOT)  // 보스 총알
 			{
 				if (player.liveFlag == 1)
 				{
@@ -932,10 +1216,9 @@ int BossClearGame() {
 
 void SetStartPosition() {
 
-	Initial(FALSE);                    // 커서 안보이게
+	Initial(FALSE);               // 커서 안보이게
 	PlayerInitialObject();        // 플레이어 비행기 시작 좌표 설정
 	EnemyInitialObject();         // 적 비행기 좌표설정
-
 }
 
 void CreateItem(int ItemNumber, int x, int y) {
@@ -1045,6 +1328,7 @@ void SaveRecord() {
 	printf("기록이 저장되었습니다.");
 	SetColor(White, Black);
 	Sleep(1000);
+	MoveCursor(40, 20);
 	exit(-1);
 }
 
